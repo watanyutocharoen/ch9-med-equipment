@@ -602,7 +602,7 @@ function renderDesk(){
 }
 function setBanner(){
   var b=$('#pwbanner');if(!b)return;
-  b.innerHTML=S.me.mustChange?'<div class="banner"><span>บัญชีนี้ยังใช้รหัสผ่านเริ่มต้น ต้องเปลี่ยนรหัสผ่านก่อนจึงจะลงข้อมูลได้</span><button class="btn sm" data-act="pw">เปลี่ยนตอนนี้</button></div>':'';
+  b.innerHTML=S.me.mustChange?'<div class="banner"><span>บัญชีนี้ยังใช้รหัสผ่านเริ่มต้น แนะนำให้เปลี่ยนเพื่อความปลอดภัย</span><button class="btn sm" data-act="pw">เปลี่ยนตอนนี้</button></div>':'';
 }
 function mountTab(){
   setBanner();
@@ -773,7 +773,7 @@ async function resetPw(id,pw){
   try{await act('resetPassword',id,pw);resetUser=null;renderUsers();toast('ตั้งรหัสผ่านใหม่แล้ว');}catch(ex){fail(ex);}
 }
 function pwModal(forced){
-  openModal('<form id="pwf" novalidate><h2>เปลี่ยนรหัสผ่าน</h2><p class="hint" style="margin-bottom:14px">'+(forced?'บัญชีนี้ใช้รหัสผ่านเริ่มต้น กรุณาตั้งรหัสผ่านใหม่ก่อนใช้งาน ':'')+'รหัสผ่านต้องมี 8 ตัวอักษร</p>'+
+  openModal('<form id="pwf" novalidate><h2>เปลี่ยนรหัสผ่าน</h2><p class="hint" style="margin-bottom:14px">'+(forced?'บัญชีนี้ยังใช้รหัสผ่านเริ่มต้น แนะนำให้ตั้งรหัสผ่านใหม่เพื่อความปลอดภัย (จะเตือนทุกครั้งที่เข้าสู่ระบบจนกว่าจะเปลี่ยน) ':'')+'รหัสผ่านต้องมี 8 ตัวอักษร</p>'+
     '<div class="fld"><label for="pw0">รหัสผ่านปัจจุบัน</label><input class="inp mono" id="pw0" type="password" maxlength="8" autocomplete="current-password"></div>'+
     '<div class="fld"><label for="pw1">รหัสผ่านใหม่</label><input class="inp mono" id="pw1" type="password" maxlength="8" autocomplete="new-password"></div>'+
     '<div class="fld"><label for="pw2">ยืนยันรหัสผ่านใหม่</label><input class="inp mono" id="pw2" type="password" maxlength="8" autocomplete="new-password"></div>'+
@@ -967,7 +967,7 @@ initStatus();initDeskEvents();go(START_VIEW);
   var pending=[];
   if(tk){
     pending.push(api('session',tk).then(function(r){
-      if(r&&r.ok){S.me=r.user;S.token=tk;if(view==='staff')renderStaff();return loadStaff();}
+      if(r&&r.ok){S.me=r.user;S.token=tk;if(view==='staff'){renderStaff();if(S.me.mustChange)pwModal(true);}return loadStaff();}
       ssSet('ch9proc.token',null);
     }).catch(function(){}));
   }
