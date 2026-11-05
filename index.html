@@ -1,15 +1,14 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ตรวจสอบสถานะสั่งซื้อ - CH9 Airport Hospital</title>
+<style>html,body{margin:0;height:100%;background:#fff}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style>
+</head><body>
+<iframe id="f" title="ตรวจสอบสถานะสั่งซื้อ" allow="clipboard-write"></iframe>
 <script>
 var APP="https://script.google.com/macros/s/AKfycbzyhGM3WqmaHtNv7--GCUv6UEjPGr6LK-feM7wMc1zyOvfDvt6625PJ9VR6vhJbhRCaJg/exec";
 var p=(location.hash||"").replace("#","")||new URLSearchParams(location.search).get("page")||"";
-var q=p?("?page="+encodeURIComponent(p)):"";
-document.write('<meta http-equiv="refresh" content="0;url='+APP+q+'">');
-location.replace(APP+q);
+document.getElementById("f").src=APP+(p?("?page="+encodeURIComponent(p)):"");
 </script>
-<noscript><meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbzyhGM3WqmaHtNv7--GCUv6UEjPGr6LK-feM7wMc1zyOvfDvt6625PJ9VR6vhJbhRCaJg/exec"></noscript>
-</head><body style="font-family:sans-serif;text-align:center;padding:40px">
-<p>กำลังเปิดระบบ… <a href="https://script.google.com/macros/s/AKfycbzyhGM3WqmaHtNv7--GCUv6UEjPGr6LK-feM7wMc1zyOvfDvt6625PJ9VR6vhJbhRCaJg/exec">กดที่นี่ถ้าไม่เปลี่ยนหน้า</a></p>
+<noscript><a href="https://script.google.com/macros/s/AKfycbzyhGM3WqmaHtNv7--GCUv6UEjPGr6LK-feM7wMc1zyOvfDvt6625PJ9VR6vhJbhRCaJg/exec">เปิดระบบ</a></noscript>
 </body></html>
