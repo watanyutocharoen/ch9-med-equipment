@@ -126,6 +126,8 @@ select.inp{padding-right:8px}
 .now small{display:block;font-size:12.5px;color:var(--muted);line-height:1.3}
 .now b{display:block;font-family:var(--f-display);font-weight:600;font-size:16.5px;line-height:1.3;overflow-wrap:anywhere}
 .now .since{font-size:13px;color:var(--muted)}
+.now .since.due{color:var(--brand,#1C3F94);font-weight:600;display:block;margin-top:2px}
+.o-st .duenote{font-size:12px;color:var(--muted);margin-top:4px}
 .nextline{font-size:13.5px;color:var(--muted)}
 .steps{list-style:none;margin:4px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
 .step{display:grid;grid-template-columns:40px 1fr;gap:14px;position:relative;padding:0 0 16px}
@@ -332,6 +334,7 @@ function $(s,r){return (r||document).querySelector(s);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function stepName(n){var s=STEPS[(n||1)-1];return s?s.t:'';}
 function fmtDate(ts){return ts?new Date(ts).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Bangkok'}):'';}
+function fmtDay(s){return /^\d{4}-\d{2}-\d{2}$/.test(s||'')?new Date(s+'T00:00:00+07:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Bangkok'}):'';}
 function fmtDT(ts){return ts?new Date(ts).toLocaleString('th-TH',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}):'';}
 function ym(){var f=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',month:'2-digit',year:'numeric'}).formatToParts(new Date());
   function g(t){for(var i=0;i<f.length;i++)if(f[i].type===t)return f[i].value;return '';}
@@ -478,6 +481,7 @@ function stepsHtml(o){
   return '<ol class="steps">'+STEPS.map(function(s){
     var cls=s.n<st||st>=8?'done':s.n===st?'cur':'todo';
     var dt=dates[s.n]?'<small>'+(cls==='cur'?'ตั้งแต่ ':'ถึงขั้นนี้ ')+fmtDate(dates[s.n])+'</small>':'';
+    if(s.n===7&&o.dueDate&&st>=7)dt+='<small>บริษัทแจ้งส่งมอบ '+fmtDay(o.dueDate)+'</small>';
     return '<li class="step '+cls+'"><span class="dot">'+(cls==='done'?CHECK:ico(s.n))+'</span><div class="body"><div class="t">'+esc(s.t)+(cls==='cur'?'<span class="tag">ขั้นตอนปัจจุบัน</span>':'')+'</div>'+(s.s?'<small>'+esc(s.s)+'</small>':'')+dt+'</div></li>';
   }).join('')+'</ol>';
 }
@@ -488,7 +492,7 @@ function orderCard(o){
     return '<div class="tk '+cls+'"><span class="n">'+(cls==='done'?CHECK:s.n)+'</span></div>';}).join('')+'</div>';
   var cur=STEPS[Math.min(st,8)-1],nxt=del?null:STEPS[st];
   var since=dates[st]?(del?'เมื่อ ':'ตั้งแต่ ')+fmtDate(dates[st]):'';
-  var now='<div class="now'+(del?' ok':'')+'"><span class="nico">'+ico(del?8:st)+'</span><div><small>'+(del?'สถานะ':'ขณะนี้อยู่ขั้นที่ '+st+' จาก 7')+'</small><b>'+esc(cur.t)+'</b>'+(since?'<span class="since">'+since+'</span>':'')+'</div></div>';
+  var now='<div class="now'+(del?' ok':'')+'"><span class="nico">'+ico(del?8:st)+'</span><div><small>'+(del?'สถานะ':'ขณะนี้อยู่ขั้นที่ '+st+' จาก 7')+'</small><b>'+esc(cur.t)+'</b>'+(since?'<span class="since">'+since+'</span>':'')+(st===7&&o.dueDate?'<span class="since due">บริษัทแจ้งส่งมอบ '+fmtDay(o.dueDate)+'</span>':'')+'</div></div>';
   return '<article class="ocard"><div class="oc-top"><span class="mono ono">'+esc(o.orderNo)+'</span>'+
     '<span class="pill '+(del?'ok':'warn')+'">'+(del?'ส่งมอบเรียบร้อย':'ขั้นที่ '+st+' จาก 7')+'</span></div>'+
     '<h3 class="oc-item">'+esc(o.item)+'</h3>'+
@@ -662,12 +666,30 @@ function renderOrders(){
       '<div class="o-qty">'+esc(o.qty)+' '+esc(o.unit)+'</div>'+
       '<div class="o-dept muted">'+esc(deptName(o))+'</div>'+
       '<div class="o-st"><select class="inp" data-act="status" data-id="'+esc(o.orderNo)+'" aria-label="สถานะของ '+esc(o.orderNo)+'">'+
-        STEPS.map(function(s){return '<option value="'+s.n+'"'+(s.n===o.status?' selected':'')+'>'+s.n+'. '+esc(s.t)+'</option>';}).join('')+'</select></div>'+
+        STEPS.map(function(s){return '<option value="'+s.n+'"'+(s.n===o.status?' selected':'')+'>'+s.n+'. '+esc(s.t)+'</option>';}).join('')+'</select>'+(o.status===7&&o.dueDate?'<div class="duenote">บริษัทแจ้งส่งมอบ '+fmtDay(o.dueDate)+'</div>':'')+'</div>'+
       '<div class="o-act">'+(confirming?
         '<div class="confirm"><span>ลบรายการนี้?</span><button class="btn sm danger solid" data-act="delgo" data-id="'+esc(o.orderNo)+'">ลบ</button><button class="btn sm" data-act="delno">ยกเลิก</button></div>':
         '<button class="btn sm" data-act="edit" data-id="'+esc(o.orderNo)+'">แก้ไข</button><button class="btn sm danger" data-act="del" data-id="'+esc(o.orderNo)+'">ลบ</button>')+'</div>'+
       '<div class="o-upd">อัปเดต '+fmtDT(o.updatedAt)+(by?' · '+esc(by):'')+'</div></article>';
   }).join('');
+}
+function dueModal(o){
+  openModal('<form id="dform" novalidate><h2>รอส่งมอบ</h2><p class="mono ono" style="margin-bottom:6px">'+esc(o.orderNo)+'</p><p class="hint" style="margin-bottom:12px">'+esc(o.item)+'</p>'+
+    '<div class="fld"><label for="d-due">วันที่บริษัทแจ้งส่งมอบ</label><input class="inp" id="d-due" type="date"></div>'+
+    '<p class="err" id="d-err" role="alert"></p><div class="acts"><button type="button" class="btn" id="d-cancel">ยกเลิก</button><button type="submit" class="btn primary" id="d-save">บันทึกสถานะ</button></div></form>',
+  function(m){
+    $('#d-due',m).value=o.dueDate||'';
+    function cancel(){closeModal();if($('#olist'))renderOrders();}
+    $('#d-cancel',m).addEventListener('click',cancel);
+    $('#dform',m).addEventListener('submit',async function(e){
+      e.preventDefault();
+      var err=$('#d-err',m),due=$('#d-due',m).value;
+      if(!due){err.textContent='กรุณาระบุวันที่บริษัทแจ้งส่งมอบ';return;}
+      var btn=$('#d-save',m);btn.disabled=true;btn.textContent='กำลังบันทึก…';err.textContent='';
+      try{await act('setStatus',o.orderNo,7,due);closeModal();toast('อัปเดตสถานะเป็น “'+stepName(7)+'” บริษัทแจ้งส่งมอบ '+fmtDay(due));}
+      catch(ex){btn.disabled=false;btn.textContent='บันทึกสถานะ';err.textContent=(ex&&ex.message)||'บันทึกไม่สำเร็จ';}
+    });
+  });
 }
 function orderModal(o){
   var edit=!!o;
@@ -678,11 +700,14 @@ function orderModal(o){
     '<div class="row2"><div class="fld"><label for="f-qty">จำนวน</label><input class="inp" id="f-qty" type="number" min="1" step="1" inputmode="numeric"></div>'+
     '<div class="fld"><label for="f-unit">หน่วย</label><input class="inp" id="f-unit" list="units" maxlength="30" placeholder="เช่น เครื่อง"><datalist id="units">'+UNITS.map(function(u){return '<option value="'+u+'">';}).join('')+'</datalist></div></div>'+
     '<div class="fld"><label for="f-st">สถานะการจัดซื้อ</label><select class="inp" id="f-st">'+STEPS.map(function(s){return '<option value="'+s.n+'">'+s.n+'. '+esc(s.t)+'</option>';}).join('')+'</select></div>'+
+    '<div class="fld" id="f-due-wrap" hidden><label for="f-due">วันที่บริษัทแจ้งส่งมอบ</label><input class="inp" id="f-due" type="date"></div>'+
     '<p class="err" id="f-err" role="alert"></p><div class="acts"><button type="button" class="btn" id="f-cancel">ยกเลิก</button><button type="submit" class="btn primary" id="f-save">บันทึก</button></div></form>',
   function(m){
     var combo=Combo($('#f-dept',m),{id:'f-dept-in',placeholder:'พิมพ์ค้นหาแผนก…',items:deptItems,empty:'ไม่พบแผนก — เพิ่มได้ที่แท็บ “แผนก”'});
-    if(edit){combo.set(o.deptId);$('#f-item',m).value=o.item;$('#f-qty',m).value=o.qty;$('#f-unit',m).value=o.unit;$('#f-st',m).value=o.status;}
+    if(edit){combo.set(o.deptId);$('#f-item',m).value=o.item;$('#f-qty',m).value=o.qty;$('#f-unit',m).value=o.unit;$('#f-st',m).value=o.status;$('#f-due',m).value=o.dueDate||'';}
     else{$('#f-qty',m).value=1;}
+    function syncDue(){$('#f-due-wrap',m).hidden=parseInt($('#f-st',m).value,10)!==7;}
+    $('#f-st',m).addEventListener('change',syncDue);syncDue();
     $('#f-cancel',m).addEventListener('click',closeModal);
     $('#oform',m).addEventListener('submit',async function(e){
       e.preventDefault();
@@ -691,9 +716,11 @@ function orderModal(o){
       if(!item){err.textContent='กรุณากรอกชื่อเครื่องมือแพทย์';return;}
       if(!(qty>=1)){err.textContent='จำนวนต้องเป็นตัวเลขตั้งแต่ 1 ขึ้นไป';return;}
       if(!unit){err.textContent='กรุณากรอกหน่วย';return;}
+      var due=$('#f-due',m).value;
+      if(st===7&&!due){err.textContent='กรุณาระบุวันที่บริษัทแจ้งส่งมอบ';return;}
       var btn=$('#f-save',m);btn.disabled=true;btn.textContent='กำลังบันทึก…';err.textContent='';
       try{
-        var r=await act('saveOrder',{orderNo:edit?o.orderNo:null,deptId:dId,item:item,qty:qty,unit:unit,status:st});
+        var r=await act('saveOrder',{orderNo:edit?o.orderNo:null,deptId:dId,item:item,qty:qty,unit:unit,status:st,dueDate:st>=7?due:''});
         toast(edit?'บันทึกการแก้ไขแล้ว':'สร้างรายการแล้ว เลขสั่งซื้อ '+r.orderNo);
         closeModal();
       }catch(ex){btn.disabled=false;btn.textContent='บันทึก';err.textContent=(ex&&ex.message)||'บันทึกไม่สำเร็จ';}
@@ -826,6 +853,7 @@ function initDeskEvents(){
     var s=e.target.closest('select[data-act="status"]');if(!s)return;
     var o=S.orders.filter(function(x){return x.orderNo===s.dataset.id;})[0],v=parseInt(s.value,10);
     if(!o||o.status===v)return;
+    if(v===7){dueModal(o);return;}
     s.disabled=true;
     try{await act('setStatus',o.orderNo,v);toast('อัปเดตสถานะเป็น “'+stepName(v)+'”');}
     catch(ex){fail(ex);if($('#olist'))renderOrders();}
